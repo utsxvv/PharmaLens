@@ -92,9 +92,9 @@
             .drop-zone {
                 width: 100%;
                 max-width: 540px;
-                height: 240px;
+                min-height: 240px;
                 background: rgba(255, 255, 255, 0.02);
-                border: 1px solid var(--border);
+                border: 1px dashed var(--border);
                 border-radius: 24px;
                 display: flex;
                 flex-direction: column;
@@ -104,15 +104,29 @@
                 transition:
                     background 0.2s,
                     transform 0.2s;
+                padding: 30px;
+                text-align: center;
             }
 
-            .drop-zone:hover {
-                background: rgba(255, 255, 255, 0.04);
-                border-color: rgba(255, 255, 255, 0.2);
+            /* IMPROVEMENT: Drag over state */
+            .drop-zone.drag-over {
+                background: rgba(0, 122, 255, 0.05);
+                border-color: var(--primary);
+                border-style: solid;
+                transform: scale(1.01);
             }
 
             .drop-zone:active {
                 transform: scale(0.98);
+            }
+
+            /* FIXED: Centering the content wrapper */
+            #dropZoneContent {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                width: 100%;
             }
 
             .drop-icon-circle {
@@ -124,6 +138,7 @@
                 align-items: center;
                 justify-content: center;
                 margin-bottom: 16px;
+                transition: 0.3s;
             }
 
             .drop-title {
@@ -136,6 +151,35 @@
                 font-size: 13px;
                 color: var(--text-dim);
                 font-weight: 400;
+            }
+
+            /* IMPROVEMENT: Preview Container */
+            #preview {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                width: 100%;
+            }
+
+            .preview-actions {
+                margin-top: 12px;
+                display: flex;
+                gap: 10px;
+            }
+
+            .remove-btn {
+                background: rgba(255, 69, 58, 0.15);
+                color: #ff453a;
+                border: none;
+                padding: 6px 14px;
+                border-radius: 8px;
+                font-size: 12px;
+                font-weight: 600;
+                cursor: pointer;
+                transition: 0.2s;
+            }
+            .remove-btn:hover {
+                background: rgba(255, 69, 58, 0.25);
             }
 
             /* Grid */
@@ -215,15 +259,26 @@
             </section>
 
             <section class="interface-section">
-                <div class="drop-zone">
-                    <div class="drop-icon-circle">
-                        <iconify-icon
-                            icon="lucide:arrow-up"
-                            style="font-size: 22px; color: white"
-                        ></iconify-icon>
+                <div class="drop-zone" id="dropZone">
+                    <input
+                        type="file"
+                        id="fileInput"
+                        accept=".jpg,.jpeg,.png,.pdf"
+                        style="display: none"
+                    />
+
+                    <div id="dropZoneContent">
+                        <div class="drop-icon-circle">
+                            <iconify-icon
+                                icon="lucide:arrow-up"
+                                style="font-size: 22px; color: white"
+                            ></iconify-icon>
+                        </div>
+                        <p class="drop-title">Drop a prescription file</p>
+                        <p class="drop-info">JPG, PNG, or PDF up to 5MB</p>
                     </div>
-                    <p class="drop-title">Drop a prescription file</p>
-                    <p class="drop-info">JPG, PNG, or PDF up to 10MB</p>
+
+                    <div id="preview"></div>
                 </div>
             </section>
 
@@ -264,4 +319,111 @@
             © 2026 PHARMALENS &nbsp; // &nbsp; ALL RIGHT RESERVED
         </footer>
     </body>
+
+    <script>
+        const dropZone = document.getElementById("dropZone");
+        const dropZoneContent = document.getElementById("dropZoneContent");
+        const fileInput = document.getElementById("fileInput");
+        const preview = document.getElementById("preview");
+
+        // Click to upload
+        dropZone.addEventListener("click", () => fileInput.click());
+
+        // IMPROVEMENT: Drag and Drop Handlers
+        dropZone.addEventListener("dragover", (e) => {
+            e.preventDefault();
+            dropZone.classList.add("drag-over");
+        });
+
+        ["dragleave", "dragend"].forEach((type) => {
+            dropZone.addEventListener(type, () => {
+                dropZone.classList.remove("drag-over");
+            });
+        });
+
+        dropZone.addEventListener("drop", (e) => {
+            e.preventDefault();
+            dropZone.classList.remove("drag-over");
+            const files = e.dataTransfer.files;
+            if (files.length) {
+                fileInput.files = files;
+                handleFile({ target: fileInput });
+            }
+        });
+
+        fileInput.addEventListener("change", handleFile);
+
+        function handleFile(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const allowedTypes = ["image/jpeg", "image/png", "application/pdf"];
+            const maxSize = 5 * 1024 * 1024;
+
+            if (!allowedTypes.includes(file.type)) {
+                alert("Only JPG, PNG or PDF files are allowed.");
+                resetUpload();
+                return;
+            }
+
+            if (file.size > maxSize) {
+                alert("File must be smaller than 5MB.");
+                resetUpload();
+                return;
+            }
+
+            // Hide the default upload UI
+            dropZoneContent.style.display = "none";
+            preview.innerHTML = "";
+
+            const previewWrapper = document.createElement("div");
+            previewWrapper.style.display = "flex";
+            previewWrapper.style.flexDirection = "column";
+            previewWrapper.style.alignItems = "center";
+
+            if (file.type === "application/pdf") {
+                previewWrapper.innerHTML = `
+                    <iconify-icon icon="lucide:file-text" style="font-size: 48px; color: var(--primary)"></iconify-icon>
+                    <p style='font-size:14px; color:#ffffff; margin-top:10px; font-weight:500'>${file.name}</p>
+                    <p style='font-size:12px; color:#8e8e93'>PDF Document</p>
+                `;
+            } else {
+                const img = document.createElement("img");
+                img.src = URL.createObjectURL(file);
+                img.style.maxWidth = "100%";
+                img.style.maxHeight = "180px";
+                img.style.borderRadius = "12px";
+                img.style.boxShadow = "0 8px 24px rgba(0,0,0,0.3)";
+                previewWrapper.appendChild(img);
+                
+                const label = document.createElement("p");
+                label.style.fontSize = "13px";
+                label.style.color = "#8e8e93";
+                label.style.marginTop = "10px";
+                label.innerText = file.name;
+                previewWrapper.appendChild(label);
+            }
+
+            // Add Remove Button
+            const actions = document.createElement("div");
+            actions.className = "preview-actions";
+            const removeBtn = document.createElement("button");
+            removeBtn.innerText = "Remove File";
+            removeBtn.className = "remove-btn";
+            removeBtn.onclick = (e) => {
+                e.stopPropagation(); // Stop click from triggering file input
+                resetUpload();
+            };
+
+            actions.appendChild(removeBtn);
+            previewWrapper.appendChild(actions);
+            preview.appendChild(previewWrapper);
+        }
+
+        function resetUpload() {
+            fileInput.value = "";
+            preview.innerHTML = "";
+            dropZoneContent.style.display = "flex";
+        }
+    </script>
 </html>
