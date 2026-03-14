@@ -1,0 +1,267 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>PharmaLens | Home</title>
+
+        <link
+            href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600&display=swap"
+            rel="stylesheet"
+        />
+        <script src="https://code.iconify.design/iconify-icon/3.0.0/iconify-icon.min.js"></script>
+
+        <style>
+            :root {
+                --bg: #0a0c10;
+                --primary: #007aff; /* iOS Blue */
+                --text-main: #ffffff;
+                --text-dim: #8e8e93;
+                --border: rgba(255, 255, 255, 0.1);
+            }
+
+            * {
+                box-sizing: border-box;
+                margin: 0;
+                padding: 0;
+            }
+
+            body {
+                font-family:
+                    "Plus Jakarta Sans",
+                    -apple-system,
+                    sans-serif;
+                background-color: var(--bg);
+                color: var(--text-main);
+                -webkit-font-smoothing: antialiased;
+                overflow-x: hidden;
+            }
+
+            /* Header */
+            header {
+                padding: 24px 60px;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                border-bottom: 1px solid var(--border);
+            }
+
+            .logo {
+                font-size: 19px;
+                font-weight: 600;
+                letter-spacing: -0.5px;
+            }
+            .nav-link {
+                color: var(--text-dim);
+                text-decoration: none;
+                margin: 0 15px;
+                font-size: 13px;
+                transition: 0.3s;
+            }
+            .nav-link:hover {
+                color: var(--text-main);
+            }
+
+            /* Hero Section */
+            .hero {
+                text-align: center;
+                padding: 100px 20px 40px;
+            }
+            .hero-title {
+                font-size: clamp(32px, 6vw, 52px);
+                font-weight: 600;
+                letter-spacing: -1.2px;
+                margin-bottom: 16px;
+            }
+            .hero-subtitle {
+                color: var(--text-dim);
+                max-width: 480px;
+                margin: 0 auto 60px;
+                font-size: 17px;
+                line-height: 1.5;
+                font-weight: 300;
+            }
+
+            /* Minimal iOS-Style Drop Zone */
+            .interface-section {
+                display: flex;
+                justify-content: center;
+                padding: 0 20px 80px;
+            }
+
+            .drop-zone {
+                width: 100%;
+                max-width: 540px;
+                height: 240px;
+                background: rgba(255, 255, 255, 0.02);
+                border: 1px solid var(--border);
+                border-radius: 24px;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                cursor: pointer;
+                transition:
+                    background 0.2s,
+                    transform 0.2s;
+            }
+
+            .drop-zone:hover {
+                background: rgba(255, 255, 255, 0.04);
+                border-color: rgba(255, 255, 255, 0.2);
+            }
+
+            .drop-zone:active {
+                transform: scale(0.98);
+            }
+
+            .drop-icon-circle {
+                width: 48px;
+                height: 48px;
+                border-radius: 50%;
+                background: var(--primary);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                margin-bottom: 16px;
+            }
+
+            .drop-title {
+                font-size: 16px;
+                font-weight: 500;
+                margin-bottom: 6px;
+            }
+
+            .drop-info {
+                font-size: 13px;
+                color: var(--text-dim);
+                font-weight: 400;
+            }
+
+            /* Grid */
+            .grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+                gap: 40px;
+                padding: 60px;
+                max-width: 1100px;
+                margin: 0 auto;
+            }
+
+            .card {
+                padding: 20px 0;
+                border-top: 1px solid var(--border);
+            }
+            .card h3 {
+                font-size: 14px;
+                font-weight: 600;
+                margin-bottom: 8px;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+            }
+            .card p {
+                color: var(--text-dim);
+                font-size: 14px;
+                line-height: 1.6;
+                font-weight: 300;
+            }
+
+            @media (max-width: 768px) {
+                header {
+                    padding: 20px;
+                }
+                .grid {
+                    padding: 40px 20px;
+                }
+                .nav-links {
+                    display: none;
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <header>
+            <div class="logo">
+                Pharma<span style="color: var(--primary)">Lens</span>
+            </div>
+            <nav class="nav-links">
+                <a href="#" class="nav-link">Platform</a>
+                <a href="#" class="nav-link">Security</a>
+                <a href="#" class="nav-link">API Docs</a>
+            </nav>
+            <button
+                style="
+                    background: white;
+                    color: black;
+                    border: none;
+                    padding: 8px 18px;
+                    border-radius: 12px;
+                    font-weight: 600;
+                    font-size: 13px;
+                    cursor: pointer;
+                "
+            >
+                Sign In
+            </button>
+        </header>
+
+        <main>
+            <section class="hero">
+                <h1 class="hero-title">Prescriptions, Digitized</h1>
+                <p class="hero-subtitle">
+                    Convert handwritten medical documents into clinical data.
+                    Clinical-grade accuracy, instant results.
+                </p>
+            </section>
+
+            <section class="interface-section">
+                <div class="drop-zone">
+                    <div class="drop-icon-circle">
+                        <iconify-icon
+                            icon="lucide:arrow-up"
+                            style="font-size: 22px; color: white"
+                        ></iconify-icon>
+                    </div>
+                    <p class="drop-title">Drop a prescription file</p>
+                    <p class="drop-info">JPG, PNG, or PDF up to 10MB</p>
+                </div>
+            </section>
+
+            <section class="grid">
+                <div class="card">
+                    <h3>01. Extraction</h3>
+                    <p>
+                        Recognize complex medication names and dosages with
+                        proprietary AI models.
+                    </p>
+                </div>
+                <div class="card">
+                    <h3>02. Privacy</h3>
+                    <p>
+                        Processed with clinical-grade encryption and
+                        zero-retention data policies.
+                    </p>
+                </div>
+                <div class="card">
+                    <h3>03. Integration</h3>
+                    <p>
+                        Deploy directly into existing pharmacy or hospital
+                        workflows via secure API.
+                    </p>
+                </div>
+            </section>
+        </main>
+
+        <footer
+            style="
+                text-align: center;
+                padding: 60px 20px;
+                color: #3a3a3c;
+                font-size: 11px;
+                letter-spacing: 1px;
+            "
+        >
+            © 2026 PHARMALENS &nbsp; // &nbsp; ALL RIGHT RESERVED
+        </footer>
+    </body>
+</html>
