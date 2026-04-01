@@ -308,6 +308,69 @@
                 </form>
             </section>
 
+            {% if uploaded %}
+            <section
+                style="
+                    padding: 0 20px 60px;
+                    display: flex;
+                    justify-content: center;
+                "
+            >
+                <div
+                    style="
+                        width: 100%;
+                        max-width: 900px;
+                        display: flex;
+                        gap: 30px;
+                        flex-wrap: wrap;
+                        justify-content: center;
+                    "
+                >
+                    {% if file_url %}
+                    <div style="flex: 1; min-width: 280px; text-align: center">
+                        <p
+                            style="
+                                font-size: 14px;
+                                color: var(--text-dim);
+                                margin-bottom: 10px;
+                            "
+                        >
+                            Original
+                        </p>
+                        <img
+                            src="{{ file_url }}"
+                            style="
+                                width: 100%;
+                                border-radius: 16px;
+                                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+                            "
+                        />
+                    </div>
+                    {% endif %} {% if processed_url %}
+                    <div style="flex: 1; min-width: 280px; text-align: center">
+                        <p
+                            style="
+                                font-size: 14px;
+                                color: var(--text-dim);
+                                margin-bottom: 10px;
+                            "
+                        >
+                            Processed
+                        </p>
+                        <img
+                            src="{{ processed_url }}"
+                            style="
+                                width: 100%;
+                                border-radius: 16px;
+                                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+                            "
+                        />
+                    </div>
+                    {% endif %}
+                </div>
+            </section>
+            {% endif %}
+
             <section class="grid">
                 <div class="card">
                     <h3>01. Extraction</h3>
