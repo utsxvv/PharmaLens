@@ -89,6 +89,11 @@
                 padding: 0 20px 80px;
             }
 
+            form {
+                width: 100%;
+                max-width: 540px;
+            }
+
             .drop-zone {
                 width: 100%;
                 max-width: 540px;
@@ -259,27 +264,48 @@
             </section>
 
             <section class="interface-section">
-                <div class="drop-zone" id="dropZone">
-                    <input
-                        type="file"
-                        id="fileInput"
-                        accept=".jpg,.jpeg,.png,.pdf"
-                        style="display: none"
-                    />
+                <form method="POST" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="drop-zone" id="dropZone">
+                        <input
+                            type="file"
+                            id="fileInput"
+                            name="prescription"
+                            accept=".jpg,.jpeg,.png,.pdf"
+                            style="display: none"
+                        />
 
-                    <div id="dropZoneContent">
-                        <div class="drop-icon-circle">
-                            <iconify-icon
-                                icon="lucide:arrow-up"
-                                style="font-size: 22px; color: white"
-                            ></iconify-icon>
+                        <div id="dropZoneContent">
+                            <div class="drop-icon-circle">
+                                <iconify-icon
+                                    icon="lucide:arrow-up"
+                                    style="font-size: 22px; color: white"
+                                ></iconify-icon>
+                            </div>
+                            <p class="drop-title">Drop a prescription file</p>
+                            <p class="drop-info">JPG, PNG, or PDF up to 5MB</p>
                         </div>
-                        <p class="drop-title">Drop a prescription file</p>
-                        <p class="drop-info">JPG, PNG, or PDF up to 5MB</p>
+
+                        <div id="preview" style="margin-top: 15px"></div>
                     </div>
 
-                    <div id="preview"></div>
-                </div>
+                    <div style="text-align: center; margin-top: 20px">
+                        <button
+                            type="submit"
+                            style="
+                                background: var(--primary);
+                                color: white;
+                                border: none;
+                                padding: 10px 24px;
+                                border-radius: 12px;
+                                font-weight: 500;
+                                cursor: pointer;
+                            "
+                        >
+                            Analyze Prescription
+                        </button>
+                    </div>
+                </form>
             </section>
 
             <section class="grid">
@@ -395,7 +421,7 @@
                 img.style.borderRadius = "12px";
                 img.style.boxShadow = "0 8px 24px rgba(0,0,0,0.3)";
                 previewWrapper.appendChild(img);
-                
+
                 const label = document.createElement("p");
                 label.style.fontSize = "13px";
                 label.style.color = "#8e8e93";
