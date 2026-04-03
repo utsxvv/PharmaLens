@@ -3,6 +3,9 @@ from django.core.files.storage import FileSystemStorage
 from .utils.preprocessing import preprocess_image
 import cv2
 import os
+import pytesseract
+
+pytesseract.pytesseract.tesseract_cmd = r"D:\DOWNLOADS\TEMPORARY\TESSERACT\tesseract.exe"  # Update this path to your Tesseract executable
 
 def home(request):
     if request.method == "POST" and request.FILES.get("prescription"):
@@ -16,6 +19,8 @@ def home(request):
 
         # ✅ STEP 1: preprocess image
         processed = preprocess_image(filepath)
+
+        text = pytesseract.image_to_string(processed, config="--psm 4")  # Use appropriate PSM for better results
 
         # ✅ STEP 2: save processed image
         name, ext = os.path.splitext(filename)
@@ -31,6 +36,7 @@ def home(request):
         return render(request, "home.html", {
             "file_url": file_url,
             "processed_url": processed_url,
+            "text": text,
             "uploaded": True
         })
 

@@ -369,6 +369,42 @@
                     {% endif %}
                 </div>
             </section>
+            {% endif %} {% if text %}
+            <section
+                style="
+                    padding: 0 20px 60px;
+                    display: flex;
+                    justify-content: center;
+                "
+            >
+                <div style="width: 100%; max-width: 900px">
+                    <p
+                        style="
+                            font-size: 14px;
+                            color: var(--text-dim);
+                            margin-bottom: 10px;
+                            text-align: center;
+                        "
+                    >
+                        Extracted Text
+                    </p>
+
+                    <div
+                        style="
+                            background: rgba(255, 255, 255, 0.03);
+                            border: 1px solid var(--border);
+                            border-radius: 16px;
+                            padding: 20px;
+                            color: var(--text-main);
+                            font-size: 14px;
+                            line-height: 1.6;
+                            white-space: pre-wrap;
+                        "
+                    >
+                        {{ text }}
+                    </div>
+                </div>
+            </section>
             {% endif %}
 
             <section class="grid">
