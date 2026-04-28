@@ -1,0 +1,20 @@
+
+PharmaLens — CRNN Evaluation Summary
+======================================
+Test images          : 780
+Exact match accuracy : 566/780  (72.6%)
+Fuzzy match accuracy : 705/780  (90.4%)
+  (fuzzy threshold   : 80%)
+Average similarity   : 93.4%
+
+Worst Predictions:
+  Expected: Montene               Got: Bacaid                (0.0%)
+  Expected: Flugal                Got: Progut                (16.666666666666664%)
+  Expected: Sergel                Got: Maxpro                (16.666666666666664%)
+  Expected: Sergel                Got: Maxpro                (16.666666666666664%)
+  Expected: Nexcap                Got: Optoa                 (18.181818181818176%)
+  Expected: Renova                Got: Dmaon                 (18.181818181818176%)
+  Expected: Opton                 Got: Nexom                 (19.999999999999996%)
+  Expected: Nexcap                Got: Oaon                  (19.999999999999996%)
+  Expected: Napa                  Got: Mofn                  (25.0%)
+  Expected: Napa Extend           Got: Nsoai                 (25.0%)
