@@ -39,7 +39,7 @@ CONFIG = {
     # Training
     "epochs"       : 30,
     "batch_size"   : 32,       # samples per batch
-    "learning_rate": 0.001,    # how fast model learns
+    "learning_rate": 0.0005,    # how fast model learns
     "num_workers"  : 0,        # MUST be 0 on Windows
 
     # Output
@@ -135,7 +135,7 @@ def train():
 
     # Reduce learning rate when validation loss stops improving
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
-        optimizer, mode="min", patience=3, factor=0.5, verbose=True
+        optimizer, mode="min", patience=3, factor=0.5
     )
 
     # ── Training Loop ─────────────────────────────────────────────────────────

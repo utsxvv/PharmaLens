@@ -1,20 +1,24 @@
-
-PharmaLens — CRNN Evaluation Summary
+PharmaLens â€” CRNN Evaluation Summary
 ======================================
-Test images          : 780
-Exact match accuracy : 566/780  (72.6%)
-Fuzzy match accuracy : 705/780  (90.4%)
-  (fuzzy threshold   : 80%)
-Average similarity   : 93.4%
+Test images          : 826
+Exact match accuracy : 575/826  (69.6%)
+Fuzzy match accuracy : 794/826  (96.1%)
+  (fuzzy threshold   : 60%)
+Average char sim     : 92.8%
 
-Worst Predictions:
+Breakdown:
+  Exact correct      : 575   (69.6%)
+  Fuzzy recovered    : 219   (26.5%)
+  Still incorrect    : 32   (3.9%)
+
+Worst Predictions (completely wrong):
+  Expected: Exium                 Got: Tl                    (0.0%)
   Expected: Montene               Got: Bacaid                (0.0%)
-  Expected: Flugal                Got: Progut                (16.666666666666664%)
-  Expected: Sergel                Got: Maxpro                (16.666666666666664%)
-  Expected: Sergel                Got: Maxpro                (16.666666666666664%)
-  Expected: Nexcap                Got: Optoa                 (18.181818181818176%)
-  Expected: Renova                Got: Dmaon                 (18.181818181818176%)
-  Expected: Opton                 Got: Nexom                 (19.999999999999996%)
-  Expected: Nexcap                Got: Oaon                  (19.999999999999996%)
-  Expected: Napa                  Got: Mofn                  (25.0%)
-  Expected: Napa Extend           Got: Nsoai                 (25.0%)
+  Expected: Sergel                Got: Maxpro                (16.7%)
+  Expected: Renova                Got: Lumont                (16.7%)
+  Expected: Nexcap                Got: Opifa                 (18.2%)
+  Expected: Opton                 Got: Nexum                 (20.0%)
+  Expected: Ritch                 Got: Rzax                  (22.2%)
+  Expected: Napa                  Got: Nze                   (28.6%)
+  Expected: Sergel                Got: Naet                  (30.0%)
+  Expected: Renova                Got: Domono                (33.3%)

@@ -29,7 +29,7 @@ from charset import encode
 # so batching is easier. These values work well for single medicine words.
 #
 IMG_HEIGHT = 32     # pixels — standard for CRNN
-IMG_WIDTH  = 128    # pixels — wide enough for long names like "Clarithromycin"
+IMG_WIDTH  = 256    # pixels — wide enough for long names like "Clarithromycin"
 
 
 class MedicineDataset(Dataset):
@@ -78,9 +78,11 @@ class MedicineDataset(Dataset):
             self.transform = transforms.Compose([
                 transforms.Grayscale(),                        # convert to 1 channel
                 transforms.Resize((IMG_HEIGHT, IMG_WIDTH)),    # fixed size
-                transforms.RandomRotation(degrees=3),          # slight tilt ±3°
-                transforms.ColorJitter(brightness=0.3,         # vary brightness
-                                       contrast=0.3),
+                transforms.RandomRotation(degrees=5),          # slight tilt ±3°
+                transforms.ColorJitter(brightness=0.4,         # vary brightness
+                                       contrast=0.4),
+                transforms.RandomAffine(degrees=0,
+                                        shear=5), 
                 transforms.ToTensor(),                         # → [0,1] float tensor
                 transforms.Normalize(mean=[0.5],               # → [-1,1] range
                                      std=[0.5]),

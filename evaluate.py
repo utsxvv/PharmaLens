@@ -6,7 +6,13 @@ Usage:
 
 Outputs:
     evaluation_report.csv   — per-image results
-    evaluation_summary.txt  — overall accuracy
+    evaluation_summary.txt  — overall accuracy summary
+
+Fixes vs previous version:
+    FIX 1: fuzzy_cutoff lowered 80 → 60 (matches ocr_engine.py)
+    FIX 2: weights_only=False in torch.load
+    FIX 3: added character similarity column to report
+    FIX 4: summary shows recovery breakdown
 """
 
 import os
@@ -30,22 +36,24 @@ CONFIG = {
     "summary_path" : "evaluation_summary.txt",
     "batch_size"   : 32,
     "num_workers"  : 0,
-    "fuzzy_cutoff" : 80,
+    "fuzzy_cutoff" : 60,    # FIX 1: was 80, lowered to match ocr_engine.py
 }
 
 
 def evaluate():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    print(f"[Evaluate] Device: {device}")
+    print(f"[Evaluate] Device     : {device}")
 
     # ── Load Model ─────────────────────────────────────────────────────────────
-    print(f"[Evaluate] Loading model from: {CONFIG['model_path']}")
-    checkpoint = torch.load(CONFIG["model_path"], map_location=device)
+    print(f"[Evaluate] Loading model: {CONFIG['model_path']}")
+
+    # FIX 2: weights_only=False
+    checkpoint = torch.load(CONFIG["model_path"], map_location=device, weights_only=False)
 
     model = CRNN(hidden_size=256).to(device)
     model.load_state_dict(checkpoint["model_state"])
     model.eval()
-    print(f"[Evaluate] Model loaded  (trained for {checkpoint['epoch']} epochs)")
+    print(f"[Evaluate] Loaded (epoch {checkpoint.get('epoch', '?')})")
 
     # ── Test Dataset ───────────────────────────────────────────────────────────
     test_dataset = MedicineDataset(
@@ -62,9 +70,6 @@ def evaluate():
     )
     print(f"[Evaluate] Test samples: {len(test_dataset)}")
 
-    # ── Load test CSV for generic name lookup ──────────────────────────────────
-    df_test = pd.read_csv(CONFIG["test_csv"])
-
     # ── Run Predictions ────────────────────────────────────────────────────────
     results = []
 
@@ -73,31 +78,42 @@ def evaluate():
             images = batch["image"].to(device)
             texts  = batch["text"]
 
-            logits    = model(images)                   # [seq, B, classes]
-            log_probs = logits.argmax(dim=2)            # [seq, B]
-            log_probs = log_probs.permute(1, 0)         # [B, seq]
+            logits    = model(images)                # [seq, B, classes]
+            log_probs = logits.argmax(dim=2)         # [seq, B]
+            log_probs = log_probs.permute(1, 0)      # [B, seq]
 
             for i, indices in enumerate(log_probs):
                 predicted  = decode(indices.tolist())
                 true_label = texts[i]
-                similarity = fuzz.ratio(predicted.lower(), true_label.lower())
+
+                # FIX 3: use both ratio (strict char similarity) and WRatio (fuzzy)
+                char_sim   = fuzz.ratio(predicted.lower(), true_label.lower())
+                fuzzy_sim  = fuzz.WRatio(predicted.lower(), true_label.lower())
+                exact      = predicted.lower() == true_label.lower()
+                fuzzy_ok   = fuzzy_sim >= CONFIG["fuzzy_cutoff"]
 
                 results.append({
-                    "true_medicine" : true_label,
-                    "predicted"     : predicted,
-                    "similarity"    : similarity,
-                    "exact_match"   : predicted.lower() == true_label.lower(),
-                    "fuzzy_match"   : similarity >= CONFIG["fuzzy_cutoff"],
+                    "true_medicine"  : true_label,
+                    "predicted"      : predicted,
+                    "char_similarity": round(char_sim, 2),
+                    "fuzzy_score"    : round(fuzzy_sim, 2),
+                    "exact_match"    : exact,
+                    "fuzzy_match"    : fuzzy_ok,
                 })
 
-    # ── Report ─────────────────────────────────────────────────────────────────
+    # ── Build Report ───────────────────────────────────────────────────────────
     report_df = pd.DataFrame(results)
     report_df.to_csv(CONFIG["report_path"], index=False)
 
-    total       = len(results)
-    exact       = report_df["exact_match"].sum()
-    fuzzy       = report_df["fuzzy_match"].sum()
-    avg_sim     = report_df["similarity"].mean()
+    total    = len(results)
+    exact    = report_df["exact_match"].sum()
+    fuzzy    = report_df["fuzzy_match"].sum()
+    avg_sim  = report_df["char_similarity"].mean()
+
+    # FIX 4: breakdown of how many were recovered by fuzzy matching
+    exact_only   = exact
+    fuzzy_only   = fuzzy - exact   # correct via fuzzy but not exact
+    still_wrong  = total - fuzzy
 
     summary = f"""
 PharmaLens — CRNN Evaluation Summary
@@ -106,17 +122,26 @@ Test images          : {total}
 Exact match accuracy : {exact}/{total}  ({100*exact/total:.1f}%)
 Fuzzy match accuracy : {fuzzy}/{total}  ({100*fuzzy/total:.1f}%)
   (fuzzy threshold   : {CONFIG['fuzzy_cutoff']}%)
-Average similarity   : {avg_sim:.1f}%
+Average char sim     : {avg_sim:.1f}%
 
-Worst Predictions:
+Breakdown:
+  Exact correct      : {exact_only}   ({100*exact_only/total:.1f}%)
+  Fuzzy recovered    : {fuzzy_only}   ({100*fuzzy_only/total:.1f}%)
+  Still incorrect    : {still_wrong}   ({100*still_wrong/total:.1f}%)
+
+Worst Predictions (completely wrong):
 """
-    mistakes = report_df[~report_df["fuzzy_match"]].sort_values("similarity")
+    mistakes = report_df[~report_df["fuzzy_match"]].sort_values("fuzzy_score")
     for _, row in mistakes.head(10).iterrows():
-        summary += f"  Expected: {row['true_medicine']:<20}  Got: {row['predicted']:<20}  ({row['similarity']}%)\n"
+        summary += (
+            f"  Expected: {row['true_medicine']:<20}"
+            f"  Got: {row['predicted']:<20}"
+            f"  ({row['fuzzy_score']:.1f}%)\n"
+        )
 
     print(summary)
 
-    with open(CONFIG["summary_path"], "w") as f:
+    with open(CONFIG["summary_path"], "w", encoding="utf-8") as f:
         f.write(summary)
 
     print(f"[Evaluate] Report  → {CONFIG['report_path']}")
