@@ -1,13 +1,3 @@
-"""
-predict.py — Test your trained CRNN on a single image from terminal.
-
-Usage:
-    python predict.py <image_path>
-
-Example:
-    python predict.py DataSet/Testing/testing_words/01.png
-"""
-
 import sys
 from ocr_engine import load_engine, predict
 
@@ -20,7 +10,6 @@ def main():
 
     image_path = sys.argv[1]
 
-    # Load model and medicine database
     load_engine(
         model_path = "saved_model/crnn_best.pth",
         csv_paths  = [
@@ -30,10 +19,8 @@ def main():
         ]
     )
 
-    # Run prediction
     result = predict(image_path)
 
-    # Display result
     print("\n" + "="*50)
     print("  PharmaLens — Prediction Result")
     print("="*50)

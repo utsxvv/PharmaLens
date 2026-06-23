@@ -1,20 +1,3 @@
-"""
-evaluate.py — Evaluate trained CRNN on the test set.
-
-Usage:
-    python evaluate.py
-
-Outputs:
-    evaluation_report.csv   — per-image results
-    evaluation_summary.txt  — overall accuracy summary
-
-Fixes vs previous version:
-    FIX 1: fuzzy_cutoff lowered 80 → 60 (matches ocr_engine.py)
-    FIX 2: weights_only=False in torch.load
-    FIX 3: added character similarity column to report
-    FIX 4: summary shows recovery breakdown
-"""
-
 import os
 import torch
 import torch.nn as nn
@@ -36,7 +19,7 @@ CONFIG = {
     "summary_path" : "evaluation_summary.txt",
     "batch_size"   : 32,
     "num_workers"  : 0,
-    "fuzzy_cutoff" : 60,    # FIX 1: was 80, lowered to match ocr_engine.py
+    "fuzzy_cutoff" : 60,    
 }
 
 
@@ -44,10 +27,8 @@ def evaluate():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"[Evaluate] Device     : {device}")
 
-    # ── Load Model ─────────────────────────────────────────────────────────────
     print(f"[Evaluate] Loading model: {CONFIG['model_path']}")
 
-    # FIX 2: weights_only=False
     checkpoint = torch.load(CONFIG["model_path"], map_location=device, weights_only=False)
 
     model = CRNN(hidden_size=256).to(device)
@@ -55,7 +36,6 @@ def evaluate():
     model.eval()
     print(f"[Evaluate] Loaded (epoch {checkpoint.get('epoch', '?')})")
 
-    # ── Test Dataset ───────────────────────────────────────────────────────────
     test_dataset = MedicineDataset(
         CONFIG["test_csv"],
         CONFIG["test_images"],
@@ -70,7 +50,6 @@ def evaluate():
     )
     print(f"[Evaluate] Test samples: {len(test_dataset)}")
 
-    # ── Run Predictions ────────────────────────────────────────────────────────
     results = []
 
     with torch.no_grad():
@@ -78,15 +57,14 @@ def evaluate():
             images = batch["image"].to(device)
             texts  = batch["text"]
 
-            logits    = model(images)                # [seq, B, classes]
-            log_probs = logits.argmax(dim=2)         # [seq, B]
-            log_probs = log_probs.permute(1, 0)      # [B, seq]
+            logits    = model(images)                
+            log_probs = logits.argmax(dim=2)         
+            log_probs = log_probs.permute(1, 0)      
 
             for i, indices in enumerate(log_probs):
                 predicted  = decode(indices.tolist())
                 true_label = texts[i]
 
-                # FIX 3: use both ratio (strict char similarity) and WRatio (fuzzy)
                 char_sim   = fuzz.ratio(predicted.lower(), true_label.lower())
                 fuzzy_sim  = fuzz.WRatio(predicted.lower(), true_label.lower())
                 exact      = predicted.lower() == true_label.lower()
@@ -101,7 +79,6 @@ def evaluate():
                     "fuzzy_match"    : fuzzy_ok,
                 })
 
-    # ── Build Report ───────────────────────────────────────────────────────────
     report_df = pd.DataFrame(results)
     report_df.to_csv(CONFIG["report_path"], index=False)
 
@@ -110,9 +87,8 @@ def evaluate():
     fuzzy    = report_df["fuzzy_match"].sum()
     avg_sim  = report_df["char_similarity"].mean()
 
-    # FIX 4: breakdown of how many were recovered by fuzzy matching
     exact_only   = exact
-    fuzzy_only   = fuzzy - exact   # correct via fuzzy but not exact
+    fuzzy_only   = fuzzy - exact   
     still_wrong  = total - fuzzy
 
     summary = f"""

@@ -4,9 +4,7 @@ import os
 import numpy as np
 import pandas as pd
 import re
-# =========================
-# CONFIG
-# =========================
+
 JSON_FILE     = "label_studio_export.json"
 IMAGE_FOLDER  = "images"
 OUTPUT_FOLDER = "DataSet/Training/training_words"
@@ -14,10 +12,6 @@ CSV_FILE      = "DataSet/Training/training_labels.csv"
 AUGMENT_COUNT = 7
 
 os.makedirs(OUTPUT_FOLDER, exist_ok=True)
-
-# =========================
-# 
-# =========================
 
 def get_next_image_id(folder):
 
@@ -35,19 +29,9 @@ def get_next_image_id(folder):
     return max_id + 1
 
 
-# =========================
-# PREPROCESSING HELPERS
-# =========================
-
 def get_skew_angle(binary_image):
-    """
-    Robust deskew using line detection + median angle.
-    Prevents 90-degree snap bug by capping angle at ±20 degrees.
-    (From Code 1 — more reliable than simple minAreaRect)
-    """
     inverted = cv2.bitwise_not(binary_image)
 
-    # Dilate horizontally to connect words into full text lines
     kernel  = cv2.getStructuringElement(cv2.MORPH_RECT, (30, 5))
     dilated = cv2.dilate(inverted, kernel, iterations=2)
 
@@ -60,13 +44,11 @@ def get_skew_angle(binary_image):
         if cv2.contourArea(contour) > 200:
             angle = cv2.minAreaRect(contour)[-1]
 
-            # Normalize to [-45, 45]
             if angle > 45:
                 angle = angle - 90
             elif angle < -45:
                 angle = angle + 90
 
-            # Only correct minor tilts — ignore vertical lines/borders
             if -20 < angle < 20:
                 angles.append(angle)
 
@@ -74,10 +56,6 @@ def get_skew_angle(binary_image):
 
 
 def deskew(image, angle):
-    """
-    Rotates image by angle to correct tilt.
-    Skips rotation if angle is less than 0.5 degrees.
-    """
     if abs(angle) < 0.5:
         return image
 
@@ -94,11 +72,6 @@ def deskew(image, angle):
 
 
 def remove_small_noise(binary_image, min_area=15):
-    """
-    Removes tiny speckle dots left after thresholding.
-    Any black connected component smaller than min_area pixels is removed.
-    (From Code 1)
-    """
     inverted  = cv2.bitwise_not(binary_image)
 
     num_labels, labels, stats, _ = cv2.connectedComponentsWithStats(
@@ -113,43 +86,17 @@ def remove_small_noise(binary_image, min_area=15):
     return cv2.bitwise_not(cleaned)
 
 
-# =========================
-# MAIN PREPROCESSING
-# =========================
-
 def preprocess_crop(crop):
-    """
-    OCR-friendly preprocessing.
-
-    Steps:
-    1. Convert to grayscale
-    2. Light denoising
-    3. Otsu thresholding
-    4. Ensure black text on white background
-    5. Add padding
-    6. Resize while preserving aspect ratio
-    7. Pad to fixed CRNN input size (64x256)
-    """
-
     import cv2
     import numpy as np
 
-    # -------------------------
-    # Step 1: Grayscale
-    # -------------------------
     if len(crop.shape) == 3:
         gray = cv2.cvtColor(crop, cv2.COLOR_BGR2GRAY)
     else:
         gray = crop.copy()
 
-    # -------------------------
-    # Step 2: Light denoise
-    # -------------------------
     gray = cv2.GaussianBlur(gray, (3, 3), 0)
 
-    # -------------------------
-    # Step 3: Otsu Threshold
-    # -------------------------
     _, binary = cv2.threshold(
         gray,
         0,
@@ -157,15 +104,9 @@ def preprocess_crop(crop):
         cv2.THRESH_BINARY + cv2.THRESH_OTSU
     )
 
-    # -------------------------
-    # Step 4: White background
-    # -------------------------
     if np.mean(binary) < 127:
         binary = cv2.bitwise_not(binary)
 
-    # -------------------------
-    # Step 5: Add padding
-    # -------------------------
     binary = cv2.copyMakeBorder(
         binary,
         top=10,
@@ -176,10 +117,6 @@ def preprocess_crop(crop):
         value=255
     )
 
-    # -------------------------
-    # Step 6: Resize while
-    # preserving aspect ratio
-    # -------------------------
     target_h = 64
 
     h, w = binary.shape
@@ -199,9 +136,6 @@ def preprocess_crop(crop):
         interpolation=interp
     )
 
-    # -------------------------
-    # Step 7: Pad to 256 width
-    # -------------------------
     target_w = 256
 
     canvas = np.ones(
@@ -222,10 +156,6 @@ def preprocess_crop(crop):
     return canvas
 
 
-# =========================
-# AUGMENTATION
-# =========================
-
 def augment_single_image(image, n=10):
 
     augmented = []
@@ -236,9 +166,7 @@ def augment_single_image(image, n=10):
 
         aug = image.copy()
 
-        # --------------------
         # Small rotation
-        # --------------------
         angle = np.random.uniform(-3, 3)
 
         M = cv2.getRotationMatrix2D(
@@ -256,9 +184,6 @@ def augment_single_image(image, n=10):
             borderValue=255
         )
 
-        # --------------------
-        # Slight width variation
-        # --------------------
         scale_x = np.random.uniform(0.95, 1.05)
 
         new_w = max(1, int(w * scale_x))
@@ -275,9 +200,6 @@ def augment_single_image(image, n=10):
             interpolation=cv2.INTER_CUBIC
         )
 
-        # --------------------
-        # Slight shear
-        # --------------------
         if np.random.random() > 0.5:
 
             shear = np.random.uniform(-0.05, 0.05)
@@ -296,9 +218,6 @@ def augment_single_image(image, n=10):
                 borderValue=255
             )
 
-        # --------------------
-        # Tiny translation
-        # --------------------
         tx = np.random.randint(-5, 6)
         ty = np.random.randint(-2, 3)
 
@@ -330,10 +249,6 @@ def augment_single_image(image, n=10):
     return augmented
 
 
-# =========================
-# LOAD JSON
-# =========================
-
 with open(JSON_FILE, "r", encoding="utf-8") as f:
     data = json.load(f)
 
@@ -342,10 +257,6 @@ rows = []
 next_image_id = get_next_image_id(OUTPUT_FOLDER)
 
 print(f"Starting from image ID: {next_image_id}")
-
-# =========================
-# PROCESS EACH TASK
-# =========================
 
 for item in data:
 
@@ -358,7 +269,7 @@ for item in data:
     img = cv2.imread(img_path)
 
     if img is None:
-        print(f"  ❌ Not found: {img_path}")
+        print(f"Not found: {img_path}")
         continue
 
     H, W = img.shape[:2]
@@ -367,7 +278,6 @@ for item in data:
     boxes       = {}
     texts       = {}
 
-    # Extract boxes and texts
     for ann in annotations:
         ann_id = ann["id"]
         if ann["type"] == "rectangle":
@@ -377,7 +287,6 @@ for item in data:
             if text_list:
                 texts[ann_id] = text_list[0]
 
-    # Match box + text → crop → preprocess → augment → save
     for ann_id in boxes:
 
         if ann_id not in texts:
@@ -396,15 +305,13 @@ for item in data:
             print(f"  ⚠ Empty crop for: {label} — skipping")
             continue
 
-        # Preprocess
         try:
             processed = preprocess_crop(crop)
         except Exception as e:
-            print(f"  ⚠ Preprocessing failed for {label}: {e} — saving raw")
+            print(f"  Preprocessing failed for {label}: {e} — saving raw")
             gray      = cv2.cvtColor(crop, cv2.COLOR_BGR2GRAY) if len(crop.shape) == 3 else crop
             processed = cv2.resize(gray, (256, 64))
 
-        # Save original
         filename = f"{next_image_id}.png"
 
         cv2.imwrite(
@@ -421,7 +328,6 @@ for item in data:
         next_image_id += 1
         print(f"  ✅ {filename}  →  {label}  [original]")
 
-        # Save augmented versions
         for aug_img in augment_single_image(processed, n=AUGMENT_COUNT):
             aug_filename = f"{next_image_id}.png"
 
@@ -440,10 +346,6 @@ for item in data:
 
         print(f"  ✅ {AUGMENT_COUNT} augmented versions saved for: {label}")
 
-
-# =========================
-# SAVE CSV
-# =========================
 
 new_df = pd.DataFrame(rows)
 

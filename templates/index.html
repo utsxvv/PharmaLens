@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PharmaLens — Prescription Label OCR</title>
+    
+    <!-- Google Fonts: Outfit & Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Stylesheet -->
+    <link rel="stylesheet" href="/static/css/style.css?v=2.2">
+</head>
+<body>
+    <!-- Background Neon Gradients -->
+    <div class="bg-gradient-1"></div>
+    <div class="bg-gradient-2"></div>
+    <div class="bg-grid"></div>
+
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="logo-area">
+                <h1 class="logo-title">Pharma<span>Lens</span></h1>
+            </div>
+            <p class="logo-subtitle">Identify handwritten medicine labels instantly</p>
+        </header>
+
+        <!-- Main Dashboard Card -->
+        <main class="main-card">
+            <!-- Upload Dropzone Section -->
+            <section id="upload-section" class="card-section">
+                <div class="dropzone" id="dropzone">
+                    <input type="file" id="file-input" accept=".png, .jpg, .jpeg" hidden>
+                    <div class="dropzone-content">
+                        <div class="upload-icon-container">
+                            <svg class="upload-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                                <polyline points="17 8 12 3 7 8"/>
+                                <line x1="12" y1="3" x2="12" y2="15"/>
+                            </svg>
+                        </div>
+                        <h3>Upload prescription photo</h3>
+                        <p class="dropzone-text">Drag and drop your crop image here, or <span>browse files</span></p>
+                        <p class="dropzone-hint">Supports JPEG, JPG, and PNG formats</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Scanning & Preview Section (hidden by default) -->
+            <section id="preview-section" class="card-section hidden">
+                <div class="preview-container">
+                    <div class="image-wrapper">
+                        <img id="image-preview" src="" alt="Prescription preview">
+                        <!-- Laser Scanning Line -->
+                        <div class="laser-scanner" id="laser-scanner"></div>
+                    </div>
+                    <div class="loader-container" id="loader-container">
+                        <div class="spinner"></div>
+                        <p>Analyzing handwriting and matching database...</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Results Section (hidden by default) -->
+            <section id="result-section" class="card-section hidden">
+                <div class="result-layout">
+                    <!-- Status Header -->
+                    <div class="result-header">
+                        <span class="status-badge" id="status-badge">Success</span>
+                        <h2 class="result-title">Scan Results</h2>
+                    </div>
+
+                    <!-- Outcome Metrics -->
+                    <div class="metrics-grid">
+                        <!-- Brand/Medicine Name -->
+                        <div class="metric-card">
+                            <span class="metric-label">Identified Brand Name</span>
+                            <div class="metric-value-container">
+                                <span class="metric-value" id="medicine-name">—</span>
+                                <button class="copy-btn" data-copy="medicine-name" title="Copy to clipboard">
+                                    <svg class="copy-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Generic Ingredient Name -->
+                        <div class="metric-card">
+                            <span class="metric-label">Generic Name</span>
+                            <div class="metric-value-container">
+                                <span class="metric-value" id="generic-name">—</span>
+                                <button class="copy-btn" data-copy="generic-name" title="Copy to clipboard">
+                                    <svg class="copy-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Raw OCR Output -->
+                        <div class="metric-card">
+                            <span class="metric-label">Raw OCR Output</span>
+                            <div class="metric-value-container">
+                                <span class="metric-value" id="raw-ocr">—</span>
+                                <button class="copy-btn" data-copy="raw-ocr" title="Copy to clipboard">
+                                    <svg class="copy-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Matching Confidence -->
+                        <div class="metric-card">
+                            <span class="metric-label">Matching Confidence</span>
+                            <div class="metric-value-container">
+                                <span class="metric-value" id="confidence-percentage">0%</span>
+                                <button class="copy-btn" data-copy="confidence-percentage" title="Copy to clipboard">
+                                    <svg class="copy-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                                </button>
+                            </div>
+                            <div class="progress-bar-container">
+                                <div class="progress-bar" id="confidence-bar" style="width: 0%"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Message Alert Box -->
+                    <div class="info-alert" id="info-alert">
+                        <div id="alert-icon-container" style="display: flex; align-items: center; justify-content: center;">
+                            <svg class="alert-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="10"/>
+                                <line x1="12" y1="16" x2="12" y2="12"/>
+                                <line x1="12" y1="8" x2="12.01" y2="8"/>
+                            </svg>
+                        </div>
+                        <p id="alert-message">Medicine identified successfully.</p>
+                    </div>
+
+                    <!-- Reset Footer -->
+                    <div class="result-actions">
+                        <button class="btn btn-secondary" id="copy-all-btn">Copy Details</button>
+                        <button class="btn btn-primary" id="reset-btn">Scan New Image</button>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Medical Disclaimer Alert -->
+        <div class="disclaimer-card">
+            <span class="warning-emoji">⚠️</span>
+            <p><strong>AI-generated result.</strong> Recognition may not be 100% accurate. Please verify with a doctor or pharmacist before taking any medication.</p>
+        </div>
+    </div>
+
+    <!-- Script -->
+    <script src="/static/js/main.js?v=2.2"></script>
+</body>
+</html>
