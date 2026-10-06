@@ -12,7 +12,6 @@ from charset  import decode
 
 
 CONFIG = {
-    # Dataset paths
     "train_csv"    : "DataSet/Training/training_labels.csv",
     "train_images" : "DataSet/Training/training_words",
     "val_csv"      : "DataSet/Validation/validation_labels.csv",
@@ -89,7 +88,6 @@ def train():
     print(f"  Train       : {len(train_dataset)} samples")
     print(f"  Validation  : {len(val_dataset)} samples")
 
-    # ── Model ─────────────────────────────────────────────────────────────────
     model = CRNN(hidden_size=CONFIG["hidden_size"]).to(device)
     print(f"  Parameters  : {count_parameters(model):,}")
     print(f"  Epochs      : {CONFIG['epochs']}")

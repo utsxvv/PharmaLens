@@ -3,10 +3,6 @@ import shutil
 import pandas as pd
 from sklearn.model_selection import train_test_split
 
-# =====================================================
-# CONFIG
-# =====================================================
-
 SOURCE_IMAGES = "crop_words"
 SOURCE_CSV    = "new_labels.csv"
 
@@ -15,10 +11,6 @@ TEST_FOLDER = "DataSet/Testing/testing_words"
 
 VAL_CSV  = "DataSet/Validation/validation_labels.csv"
 TEST_CSV = "DataSet/Testing/testing_labels.csv"
-
-# =====================================================
-# HELPERS
-# =====================================================
 
 def get_next_id(folder):
 
@@ -35,18 +27,9 @@ def get_next_id(folder):
 
     return max(ids) + 1 if ids else 0
 
-
-# =====================================================
-# LOAD NEW DATA
-# =====================================================
-
 df = pd.read_csv(SOURCE_CSV)
 
 print(f"Total new samples: {len(df)}")
-
-# =====================================================
-# SPLIT
-# =====================================================
 
 train_df, temp_df = train_test_split(
     df,
@@ -65,10 +48,6 @@ val_df, test_df = train_test_split(
 print(f"Train: {len(train_df)}")
 print(f"Validation: {len(val_df)}")
 print(f"Testing: {len(test_df)}")
-
-# =====================================================
-# VALIDATION
-# =====================================================
 
 next_val_id = get_next_id(VAL_FOLDER)
 
@@ -109,10 +88,6 @@ combined_val.to_csv(
     index=False
 )
 
-# =====================================================
-# TESTING
-# =====================================================
-
 next_test_id = get_next_id(TEST_FOLDER)
 
 print(f"Testing starts from: {next_test_id}")
@@ -151,10 +126,6 @@ combined_test.to_csv(
     TEST_CSV,
     index=False
 )
-
-# =====================================================
-# SAVE TRAIN CSV
-# =====================================================
 
 train_df.to_csv(
     "new_training_split.csv",
